@@ -31,6 +31,26 @@ load common
     ch-ssh --help
 }
 
+@test 'setuid bit matches --is-setuid' {
+    test $CH_RUN_FILE -ef $(which ch-run)
+    [[ -e $CH_RUN_FILE ]]
+    if ( ch-run --is-setuid ); then
+        [[ -n $CH_RUN_SETUID ]]
+        [[ -u $CH_RUN_FILE ]]
+        [[ $(stat -c %U $CH_RUN_FILE) = root ]]
+    else
+        [[ -z $CH_RUN_SETUID ]]
+        [[ ! -u $CH_RUN_FILE ]]
+        #[[ $(stat -c %U $CH_RUN_FILE) != root ]]
+    fi
+}
+
+@test 'setgid bit is off' {
+    [[ -e $CH_RUN_FILE ]]
+    [[ ! -g $CH_RUN_FILE ]]
+    #[[ $(stat -c %G $CH_RUN_FILE) != root ]]
+}
+
 @test 'sycalls/pivot_root' {
     cd ../examples/syscalls
     ./pivot_root

@@ -31,6 +31,10 @@ export LC_ALL=C
 CH_BIN="$(cd "$(dirname ${BASH_SOURCE[0]})/bin" && pwd)"
 CH_BIN="$(readlink -f "$CH_BIN")"
 PATH=$CH_BIN:$PATH
+CH_RUN_FILE="$(which ch-run)"
+if [[ -u $CH_RUN_FILE ]]; then
+    CH_RUN_SETUID=
+fi
 
 # Separate directories for tarballs and images
 TARDIR=$CH_TEST_TARDIR

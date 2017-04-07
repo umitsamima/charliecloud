@@ -70,6 +70,8 @@ const struct argp_option options[] = {
    { "dir",         'd', "DIR", 0,
      "mount host DIR at container /mnt/i (i starts at 0)" },
    { "gid",         'g', "GID", 0, "run as GID within container" },
+   { "is-setuid",    -1, 0,     0,
+     "exit successfully if compiled for setuid, fail otherwise" },
    { "private-tmp", 't', 0,     0, "mount container-private tmpfs on /tmp" },
    { "uid",         'u', "UID", 0, "run as UID within container" },
    { "verbose",     'v', 0,     0, "be more verbose (debug if repeated)" },
@@ -233,6 +235,9 @@ static error_t parse_opt(int key, char * arg, struct argp_state * state)
    long l;
 
    switch (key) {
+   case -1:
+      exit(EXIT_FAILURE);
+      break;
    case 'd':
       for (i = 0; as->binds[i] != NULL; i++)
          ;
