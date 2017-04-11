@@ -72,7 +72,7 @@ load common
 }
 
 @test 'ch-run refuses to run if setuid' {
-    ch-run --is-setuid && skip 'compiled in setuid mode'
+    ch-run --is-setuid && skip 'setuid mode'
     CH_RUN_TMP=$BATS_TMPDIR_PRIVATE/ch-run.setuid
     cp -a $CH_RUN_FILE $CH_RUN_TMP
     ls -l $CH_RUN_TMP
@@ -87,7 +87,7 @@ load common
     sudo rm $CH_RUN_TMP
 }
 
-@test 'sycalls/pivot_root' {
+@test 'syscalls/pivot_root' {
     cd ../examples/syscalls
     ./pivot_root
 }
@@ -120,14 +120,21 @@ load common
     [[ $output = $PATH2:/bin ]]
 }
 
+@test 'mountns id differs' {
+    host_ns=$(stat -Lc '%i' /proc/self/ns/mnt)
+    echo "host:  $host_ns"
+    guest_ns=$(ch-run $CHTEST_IMG -- stat -Lc '%i' /proc/self/ns/mnt)
+    echo "guest: $guest_ns"
+    [[ -n $host_ns && -n $guest_ns && $host_ns -ne $guest_ns ]]
+}
+
 @test 'userns id differs' {
-    host_userns=$(stat -Lc '%i' /proc/self/ns/user)
+    ch-run --is-setuid && skip 'setuid mode'
+    host_ns=$(stat -Lc '%i' /proc/self/ns/user)
     echo "host:  $host_userns"
-    guest_userns=$(ch-run $CHTEST_IMG -- stat -Lc '%i' /proc/self/ns/user)
-    echo "guest: $guest_userns"
-    [[    -n $host_userns
-       && -n $guest_userns
-       && $host_userns -ne $guest_userns ]]
+    guest_ns=$(ch-run $CHTEST_IMG -- stat -Lc '%i' /proc/self/ns/user)
+    echo "guest: $guest_ns"
+    [[ -n $host_ns && -n $guest_ns && $host_ns -ne $guest_ns ]]
 }
 
 @test 'distro differs' {
