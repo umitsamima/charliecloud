@@ -65,16 +65,20 @@ if (sudo -v); then
 fi
 
 # Do we have what we need?
+env_require CH_TEST_TARDIR
+env_require CH_TEST_IMGDIR
+env_require CH_TEST_PERMDIRS
 if ( bash -c 'set -e; [[ 1 = 0 ]]; exit 0' ); then
     # Bash bug: [[ ... ]] expression doesn't exit with set -e
     # https://github.com/sstephenson/bats/issues/49
-    printf "Need at least Bash 4.1 for these tests.\n\n" >&2
+    printf 'Need at least Bash 4.1 for these tests.\n\n' >&2
     exit 1
 fi
 if [[ ! -x $CH_BIN/ch-run ]]; then
     printf 'Must build with "make" before running tests.\n\n' >&2
     exit 1
 fi
-env_require CH_TEST_TARDIR
-env_require CH_TEST_IMGDIR
-env_require CH_TEST_PERMDIRS
+if ( mount | fgrep -q $IMGDIR ); then
+    printf 'Something is mounted under %s.\n\n' $IMGDIR >&2
+    exit 1
+fi
