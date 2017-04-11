@@ -72,7 +72,7 @@ load common
 }
 
 @test 'ch-run refuses to run if setuid' {
-    [[ -n $CH_RUN_SETUID ]] && skip 'setuid mode'
+    [[ -n $CH_RUN_SETUID ]] && skip
     CH_RUN_TMP=$BATS_TMPDIR_PRIVATE/ch-run.setuid
     cp -a $CH_RUN_FILE $CH_RUN_TMP
     ls -l $CH_RUN_TMP
@@ -88,7 +88,7 @@ load common
 }
 
 @test 'ch-run -u and -g refused in setuid mode' {
-    [[ -z $CH_RUN_SETUID ]] && skip 'unprivileged mode'
+    [[ -z $CH_RUN_SETUID ]] && skip
     run ch-run -u 65534
     echo "$output"
     [[ $status -eq 64 ]]
@@ -100,6 +100,7 @@ load common
 }
 
 @test 'syscalls/pivot_root' {
+    [[ -n $CH_RUN_SETUID ]] && skip
     cd ../examples/syscalls
     ./pivot_root
 }
@@ -141,7 +142,7 @@ load common
 }
 
 @test 'userns id differs' {
-    [[ -n $CH_RUN_SETUID ]] && skip 'setuid mode'
+    [[ -n $CH_RUN_SETUID ]] && skip
     host_ns=$(stat -Lc '%i' /proc/self/ns/user)
     echo "host:  $host_userns"
     guest_ns=$(ch-run $CHTEST_IMG -- stat -Lc '%i' /proc/self/ns/user)

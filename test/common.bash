@@ -45,10 +45,6 @@ EXAMPLE_TAG=$(basename $BATS_TEST_DIRNAME)
 EXAMPLE_IMG=$IMGDIR/$EXAMPLE_TAG
 CHTEST_TARBALL=$TARDIR/chtest.tar.gz
 CHTEST_IMG=$IMGDIR/chtest
-if [[ -n $GUEST_USER && -z $BATS_TEST_NAME ]]; then
-    GUEST_UID=$(id -u $GUEST_USER)
-    GUEST_GID=$(getent group $GUEST_GROUP | cut -d: -f3)
-fi
 CHTEST_MULTINODE=$SLURM_JOB_ID
 if [[ $CHTEST_MULTINODE ]]; then
     # $SLURM_NTASKS isn't always set
