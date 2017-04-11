@@ -9,7 +9,7 @@ load common
         for i in $IMGDIR/*; do
             if [[ -d $i && -f $i/WEIRD_AL_YANKOVIC ]]; then
                 echo "found image $i; removing"
-                rm -Rf $i
+                rm -Rf --one-file-system $i
             else
                 echo "found non-image $i; aborting"
                 false
@@ -34,6 +34,7 @@ load common
 @test 'setuid bit matches --is-setuid' {
     test $CH_RUN_FILE -ef $(which ch-run)
     [[ -e $CH_RUN_FILE ]]
+    ls -l $CH_RUN_FILE
     if ( ch-run --is-setuid ); then
         [[ -n $CH_RUN_SETUID ]]
         [[ -u $CH_RUN_FILE ]]
@@ -49,6 +50,41 @@ load common
     [[ -e $CH_RUN_FILE ]]
     [[ ! -g $CH_RUN_FILE ]]
     #[[ $(stat -c %G $CH_RUN_FILE) != root ]]
+}
+
+@test 'ch-run refuses to run if setgid' {
+    CH_RUN_TMP=$BATS_TMPDIR_PRIVATE/ch-run.setgid
+    GID=$(id -g)
+    GID2=$(id -G | cut -d' ' -f2)
+    echo "GIDs: $GID $GID2"
+    [[ $GID != $GID2 ]]
+    cp -a $CH_RUN_FILE $CH_RUN_TMP
+    ls -l $CH_RUN_TMP
+    chgrp $GID2 $CH_RUN_TMP
+    chmod g+s $CH_RUN_TMP
+    ls -l $CH_RUN_TMP
+    [[ -g $CH_RUN_TMP ]]
+    run $CH_RUN_TMP --version
+    echo "$output"
+    [[ $status -eq 1 ]]
+    [[ $output =~ 'ch-run.setgid: error: Success' ]]
+    rm $CH_RUN_TMP
+}
+
+@test 'ch-run refuses to run if setuid' {
+    ch-run --is-setuid && skip 'compiled in setuid mode'
+    CH_RUN_TMP=$BATS_TMPDIR_PRIVATE/ch-run.setuid
+    cp -a $CH_RUN_FILE $CH_RUN_TMP
+    ls -l $CH_RUN_TMP
+    sudo chown root $CH_RUN_TMP
+    sudo chmod u+s $CH_RUN_TMP
+    ls -l $CH_RUN_TMP
+    [[ -u $CH_RUN_TMP ]]
+    run $CH_RUN_TMP --version
+    echo "$output"
+    [[ $status -eq 1 ]]
+    [[ $output =~ 'ch-run.setuid: error: Success' ]]
+    sudo rm $CH_RUN_TMP
 }
 
 @test 'sycalls/pivot_root' {
